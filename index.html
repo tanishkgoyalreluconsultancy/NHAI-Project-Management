@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mahala Portal — Project Management</title>
+<style>
+/* ============ DESIGN TOKENS ============ */
+:root{
+  --blue:#1667e0; --blue-dark:#0f4fb8; --navy:#14468c;
+  --bg:#f4f6f8; --card:#ffffff;
+  --line:#e4e7ec; --line-2:#d7dce3;
+  --text:#22272e; --muted:#5f6b7a; --muted-2:#8a94a0;
+  --green:#16a34a; --green-bg:#d9f2e0; --green-tx:#178a44;
+  --orange:#f6820c; --orange-bg:#fdeedd; --orange-tx:#e26b0a;
+  --blue-bg:#dbeafe; --blue-tx:#1d4ed8;
+  --red:#e5484d; --purple:#7c3aed; --amber:#f5a623;
+  --radius:8px; --shadow:0 1px 2px rgba(16,24,40,.06);
+  --caret-grey:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' stroke='%23555f6b' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:"Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.45}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+svg{display:block;flex:none}
+:focus-visible{outline:2px solid #9ec5fe;outline-offset:1px;border-radius:4px}
+
+/* ============ TOP BAR ============ */
+.topbar{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:12px 28px;gap:16px;position:sticky;top:0;z-index:20}
+.topbar-left{display:flex;align-items:center;gap:14px;min-width:0}
+.burger{border:none;background:none;color:#3f4650;padding:6px;border-radius:6px}
+.burger:hover{background:#eef1f4}
+.dash-label{font-size:12px;font-weight:700;letter-spacing:.08em;color:#5f6b7a}
+.emblem{width:30px;height:38px;opacity:.85}
+.portal-title{color:var(--blue);font-weight:700;font-size:16px;white-space:nowrap}
+.logout{display:inline-flex;align-items:center;gap:8px;color:var(--blue);font-weight:600;text-decoration:none;font-size:14px;padding:8px 10px;border-radius:6px}
+.logout:hover{background:#eef4fd}
+
+/* ============ PAGE ============ */
+.page{padding:24px 28px 48px;max-width:1760px;margin:0 auto}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+.page-head h1{color:var(--navy);font-size:28px;font-weight:800;letter-spacing:-.01em}
+.page-head p{color:var(--muted);font-size:13px;margin-top:6px}
+.page-actions{display:flex;gap:12px;flex-wrap:wrap}
+
+/* ============ BUTTONS ============ */
+.btn{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;border-radius:6px;padding:9px 16px;border:1px solid transparent;transition:.15s}
+.btn-outline{background:#fff;color:var(--blue);border-color:#c9d7f0}
+.btn-outline:hover{background:#f3f7fe;border-color:var(--blue)}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:var(--shadow)}
+.btn-primary:hover{background:var(--blue-dark)}
+.icon-btn{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line-2);border-radius:8px;color:#5f6b7a;transition:.15s}
+.icon-btn:hover{background:#f2f4f7;color:#333}
+.icon-btn.plain{border:none;background:none}
+.icon-btn.plain:hover{background:#eef1f4}
+@keyframes spin{to{transform:rotate(360deg)}}
+.icon-btn.spinning svg{animation:spin .6s linear}
+
+/* ============ STAT CARDS ============ */
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-bottom:20px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);min-width:0}
+.stat-ic{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
+.stat-ic.blue{background:#3b82f6}.stat-ic.green{background:#2eb84b}.stat-ic.amber{background:var(--amber)}
+.stat-ic.clock{background:var(--amber)}.stat-ic.pink{background:#f4586b}.stat-ic.ring{background:#fff}
+.stat-label{font-size:13px;color:#3f4650;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat-value{font-size:20px;font-weight:800;color:#1c2430;margin-top:2px}
+
+/* ============ FILTERS ============ */
+.filters{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch;margin-bottom:22px}
+.filter-group{display:flex;align-items:stretch;background:#fff;border:1px solid var(--line-2);border-radius:6px;overflow:hidden;min-width:200px;flex:1 1 200px;max-width:280px}
+.filter-group > span{display:flex;align-items:center;padding:0 12px;font-size:13px;color:#5f6b7a;border-right:1px solid var(--line);background:#fbfcfd;white-space:nowrap}
+.filter-group select,.filter-group input{border:none;outline:none;padding:9px 12px;font-size:13px;background:#fff;flex:1;min-width:0}
+.filter-group select{appearance:none;background-image:var(--caret-grey);background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.filter-group select.no-caret{background-image:none;padding-right:12px}
+.search-group{flex:2 1 320px;max-width:none;position:relative;display:flex;align-items:center}
+.search-group svg{position:absolute;left:12px;color:#9aa4af;width:16px;height:16px}
+.search-group input{padding-left:36px}
+.filters .btn{align-self:center}
+
+/* ============ PANEL / TABS / CONTROLS ============ */
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.panel-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:6px 16px 0;border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tab{display:inline-flex;align-items:center;gap:9px;padding:14px 18px 12px;background:none;border:none;font-size:14px;font-weight:600;color:#4b5563;border-bottom:2px solid transparent;transition:.15s}
+.tab:hover{color:#222}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.panel-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0 12px}
+.sort-group{display:flex;align-items:stretch;border:1px solid var(--line-2);border-radius:6px;overflow:hidden;background:#fff}
+.sort-group > span{display:flex;align-items:center;padding:0 10px;font-size:12.5px;color:#5f6b7a;border-right:1px solid var(--line);background:#fbfcfd}
+.sort-group select{border:none;outline:none;padding:7px 26px 7px 10px;font-size:13px;appearance:none;background-image:var(--caret-grey);background-repeat:no-repeat;background-position:right 8px center;background-color:#fff}
+.auto-group{display:flex;align-items:center;gap:8px}
+.auto-label{font-size:12.5px;font-weight:600;color:#178a44}
+.switch{position:relative;display:inline-block;width:46px;height:24px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#cfd6dd;border-radius:999px;transition:.2s}
+.slider::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.switch input:checked + .slider{background:#17a34a}
+.switch input:checked + .slider::before{transform:translateX(22px)}
+.switch-state{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:#e5f6e9;color:#178a44}
+.switch-state.off{background:#eef1f4;color:#5f6b7a}
+.last-save{font-size:12.5px;color:#6b7280;white-space:nowrap}
+.panel[data-tab="all"] .only-edit{display:none}
+.panel:not([data-tab="all"]) .only-all{display:none}
+.only-tab-edit,.only-tab-progress{display:none}
+.panel[data-tab="edit"] .only-tab-edit{display:inline-flex}
+.panel[data-tab="progress"] .only-tab-progress{display:inline-flex}
+
+/* ============ BANNERS ============ */
+.banner{display:none;margin:14px 16px;padding:11px 14px;border-radius:8px;font-size:13px;font-weight:600;align-items:flex-start;gap:9px}
+.banner svg{width:16px;height:16px;margin-top:1px}
+.banner-blue{background:#e8f1fd;border:1px solid #bcd6f7;color:var(--blue)}
+.banner-green{background:#e9f7ec;border:1px solid #bfe6c8;color:#178a44}
+.panel[data-tab="progress"] .banner-blue{display:flex}
+.panel[data-tab="edit"] .banner-green{display:flex}
+
+/* ============ TABLE (VIEW-ONLY) ============ */
+.table-wrap{overflow-x:auto}
+table.tbl{width:100%;min-width:1900px;border-collapse:collapse}
+.tbl th{background:#f7f8fa;border:1px solid var(--line);padding:10px 12px;font-size:12px;font-weight:700;color:#3f4650;text-align:left;vertical-align:middle}
+.tbl th.c-center,.tbl td.c-center{text-align:center}
+.th-sub{display:block;font-weight:600;color:#8a94a0;font-size:10.5px;margin-top:2px;letter-spacing:.02em}
+.req{color:var(--red);margin-left:2px}
+.tbl td{border:1px solid var(--line);padding:10px 12px;font-size:13px;background:#fff;vertical-align:middle}
+.tbl tbody tr:hover td{background:#fafbfc}
+.tbl tbody tr.row-selected td{background:#eaf2fe}
+.tbl input[type="checkbox"]{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
+.cell-id{color:#333;font-weight:500;white-space:nowrap}
+.cell-name{min-width:170px;max-width:200px}
+.stage-val{font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.v-plain{font-weight:600;color:#333}
+.date-text{color:#333;white-space:nowrap}
+.c-overall{min-width:120px}
+.pct{display:block;text-align:center;font-size:13px;font-weight:700;color:#22272e}
+.bar{height:5px;width:110px;max-width:100%;margin:7px auto 0;background:#e6e9ee;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;transition:width .25s}
+.b-blue{background:#2f7de1}.b-green{background:#22a447}.b-orange{background:#f6820c}
+.badge{display:inline-block;min-width:104px;text-align:center;padding:7px 10px;border-radius:6px;font-weight:600;font-size:12.5px}
+.badge.st-progress{background:var(--blue-bg);color:var(--blue-tx)}
+.badge.st-completed{background:var(--green-bg);color:var(--green-tx)}
+.badge.st-pending{background:var(--orange-bg);color:var(--orange-tx)}
+.rem-text{display:block;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#333}
+.rem-dash{color:#9aa4af;text-align:center;display:block}
+.c-action{white-space:nowrap;text-align:center;min-width:132px}
+.act{width:28px;height:28px;border:none;background:transparent;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;transition:.15s}
+.act svg{width:17px;height:17px}
+.act:hover{background:#e8ecf1}
+.act-edit{color:#5f6b7a}.act-edit:hover{color:var(--blue)}
+.act-prog{color:var(--purple)}
+.act-vill{color:#0d9488}
+.act-del{color:var(--red)}
+.act-del:hover{background:#fdecec}
+
+/* ============ MODALS ============ */
+.overlay{position:fixed;inset:0;background:rgba(15,20,25,.5);display:none;align-items:flex-start;justify-content:center;padding:48px 16px;overflow:auto;z-index:60}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;max-width:960px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.25);animation:pop .18s ease}
+.modal-md{max-width:680px}
+.modal-sm{max-width:540px}
+@keyframes pop{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+.modal-head{padding:22px 26px 16px}
+.modal-head h3{font-size:18px;font-weight:800;color:#1c2430}
+.modal-head p{font-size:13px;color:var(--muted);margin-top:4px}
+.modal-body{padding:8px 26px 22px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.field label{display:block;color:var(--blue);font-size:13px;font-weight:600;margin-bottom:7px}
+.field input,.field select,.field textarea{width:100%;height:38px;border:1px solid var(--line-2);border-radius:6px;padding:0 11px;font-size:13px;background:#fff}
+.field textarea{height:auto;min-height:78px;padding:9px 11px;resize:vertical}
+.field select{appearance:none;background-image:var(--caret-grey);background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;cursor:pointer}
+.field input:disabled{background:#f3f4f6;color:#9aa4af}
+.field input.invalid,.field select.invalid{border-color:var(--red);box-shadow:0 0 0 3px rgba(229,72,77,.12)}
+.field .date-wrap svg{right:11px}
+.date-wrap{position:relative}
+.date-wrap input{padding-right:34px !important;white-space:nowrap}
+.date-wrap svg{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#6b7280;pointer-events:none}
+.modal-foot{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:4px 26px 24px}
+
+/* ============ STAGE PROGRESS FORM ============ */
+.p-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:6px 26px 0}
+.p-grid .field input{text-align:center;font-weight:700}
+.p-overall{padding:16px 26px 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.p-overall .lab{font-size:13px;font-weight:700;color:#3f4650}
+.p-overall b{font-size:15px}
+.bar-lg{flex:1;min-width:160px;height:8px;margin:0}
+.p-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px 26px 0}
+.p-remarks{padding:16px 26px 22px}
+
+/* ============ VILLAGE MODAL ============ */
+.village-tools{display:flex;gap:10px;padding:0 26px 14px}
+.village-tools input{flex:1;height:38px;border:1px solid var(--line-2);border-radius:6px;padding:0 11px;font-size:13px}
+.village-list{list-style:none;max-height:320px;overflow:auto;padding:0 26px;margin:0;border-top:1px solid var(--line)}
+.village-list li{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.village-list li .idx{color:#9aa4af;width:28px;flex:none;font-variant-numeric:tabular-nums}
+.village-list li .vname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.village-empty{padding:18px 2px;color:#8a94a0;font-size:13px;text-align:center}
+
+/* ============ TOASTS ============ */
+.toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:80}
+.toast{background:#1f2937;color:#fff;font-size:13px;font-weight:600;padding:11px 16px;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.25);border-left:4px solid #22a447;animation:pop .2s ease;max-width:340px}
+.toast.info{border-left-color:var(--blue)}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:1500px){ .stats{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:1100px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .page{padding:20px 18px 40px}
+  .topbar{padding:12px 18px}
+  .modal-body{grid-template-columns:repeat(2,1fr)}
+  .p-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:820px){
+  .page-head{flex-direction:column}
+  .page-actions{width:100%}
+  .page-actions .btn{flex:1 1 auto;justify-content:center}
+  .panel-top{align-items:flex-start;flex-direction:column;padding-top:10px}
+  .panel-controls{width:100%;justify-content:flex-start}
+  .filter-group{max-width:none;flex:1 1 46%}
+  .search-group{flex:1 1 100%}
+}
+@media (max-width:600px){
+  .stats{grid-template-columns:1fr}
+  .dash-label{display:none}
+  .modal-body,.p-grid,.p-row{grid-template-columns:1fr}
+  .filter-group{flex:1 1 100%}
+  .page-head h1{font-size:23px}
+  .tabs{width:100%;overflow-x:auto}
+  .village-tools{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="burger" aria-label="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <span class="dash-label">DASHBOARD</span>
+    <svg class="emblem" viewBox="0 0 40 52" aria-hidden="true">
+      <g fill="#8d959f">
+        <path d="M20 3c-3 0-5 2-5 5 0-3-2-5-5-5-2 0-4 2-4 4 0 4 3 8 6 9h16c3-1 6-5 6-9 0-2-2-4-4-4-3 0-5 2-5 5 0-3-2-5-5-5z"/>
+        <rect x="6" y="19" width="28" height="4" rx="1"/>
+        <circle cx="20" cy="28" r="4.4" fill="none" stroke="#8d959f" stroke-width="2"/>
+        <path d="M8 35h24l3 9H5z"/>
+        <rect x="4" y="46" width="32" height="3" rx="1"/>
+      </g>
+    </svg>
+    <span class="portal-title">Mahala Portal</span>
+  </div>
+  <a class="logout" href="#" onclick="return false">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Logout
+  </a>
+</header>
+
+<main class="page">
+  <!-- ================= PAGE HEAD ================= -->
+  <div class="page-head">
+    <div>
+      <h1>Project Management</h1>
+      <p>Create/ Edit project details, manage location, update progress and fund information in one place.</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-outline" id="importBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import Excel
+      </button>
+      <input type="file" id="importFile" accept=".csv" hidden />
+      <button class="btn btn-outline" id="exportBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Export Excel
+      </button>
+      <button class="btn btn-primary" id="newProjectBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Project
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= STAT CARDS ================= -->
+  <section class="stats" aria-label="Key metrics">
+    <div class="stat"><span class="stat-ic blue"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+      <div><div class="stat-label">Total Projects</div><div class="stat-value" id="statProjects">28</div></div></div>
+    <div class="stat"><span class="stat-ic green"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+      <div><div class="stat-label">Total Villages</div><div class="stat-value" id="statVillages">456</div></div></div>
+    <div class="stat"><span class="stat-ic amber"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <div><div class="stat-label">Total Land Area (Ha.)</div><div class="stat-value">25,789.90</div></div></div>
+    <div class="stat"><span class="stat-ic ring">
+      <svg width="30" height="30" viewBox="0 0 36 36"><circle cx="18" cy="18" r="13" fill="none" stroke="#e6dcf7" stroke-width="5"/><circle cx="18" cy="18" r="13" fill="none" stroke="#7c3aed" stroke-width="5" stroke-linecap="round" stroke-dasharray="62 100" transform="rotate(-90 18 18)"/></svg></span>
+      <div><div class="stat-label">Completed Progress</div><div class="stat-value">54%</div></div></div>
+    <div class="stat"><span class="stat-ic clock"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      <div><div class="stat-label">In progress</div><div class="stat-value">98</div></div></div>
+    <div class="stat"><span class="stat-ic pink"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14M5 2h14M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2"/></svg></span>
+      <div><div class="stat-label">Pending</div><div class="stat-value">88</div></div></div>
+  </section>
+
+  <!-- ================= FILTERS ================= -->
+  <section class="filters" aria-label="Filters">
+    <label class="filter-group"><span>Division</span>
+      <select id="fDivision"><option>All</option><option>Nagpur</option><option>Nashik</option><option>Pune</option><option>Konkan</option><option>Aurangabad</option><option>Amravati</option></select>
+    </label>
+    <label class="filter-group"><span>District</span><select id="fDistrict"><option>All</option></select></label>
+    <label class="filter-group"><span>Tehsil</span><select id="fTehsil"><option>All</option></select></label>
+    <label class="filter-group"><span>Project Status</span>
+      <select id="fStatus" class="no-caret"><option>All</option><option>In progress</option><option>Completed</option><option>Pending</option></select>
+    </label>
+    <label class="filter-group search-group">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="fSearch" placeholder="Search by Project/ Village/ District..." aria-label="Search projects" />
+    </label>
+    <button class="btn btn-outline" id="clearFilters">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Clear Filters
+    </button>
+  </section>
+
+  <!-- ================= PANEL ================= -->
+  <section class="panel" id="panel" data-tab="all">
+    <div class="panel-top">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="all" role="tab">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          All Projects(<span id="projCount">28</span>)
+        </button>
+        <button class="tab" data-tab="edit" role="tab">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+          Edit Project
+        </button>
+        <button class="tab" data-tab="progress" role="tab">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Add Project Progress
+        </button>
+      </div>
+
+      <div class="panel-controls">
+        <label class="sort-group"><span>Sort By</span>
+          <select id="sortBy">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="name">Project Name</option>
+            <option value="progress">Progress</option>
+          </select>
+        </label>
+        <div class="auto-group">
+          <span class="auto-label">Auto Save</span>
+          <label class="switch"><input type="checkbox" id="autoSave" checked /><span class="slider"></span></label>
+          <span class="switch-state" id="autoState">On</span>
+        </div>
+        <button class="icon-btn plain only-edit" id="infoBtn" title="Only one project can be selected at a time. Actions are performed through forms.">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </button>
+        <span class="last-save only-all" id="lastSave">Last Save 10:30 AM</span>
+        <button class="icon-btn only-all" id="refreshBtn" title="Refresh">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+        <button class="btn btn-primary only-tab-edit" id="openEditFormBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+          Edit Selected Project
+        </button>
+        <button class="btn btn-primary only-tab-progress" id="openProgressFormBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Add / Edit Progress
+        </button>
+        <button class="btn btn-outline only-edit" id="cancelBtn">Cancel</button>
+      </div>
+    </div>
+
+    <div class="banner banner-blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>Select a single project and click “Add / Edit Progress” (or the row action) to open the Stage Progress form. The table is view-only — all changes are made through forms.</span>
+    </div>
+    <div class="banner banner-green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span id="editBannerText">Select a single project, then click “Edit Selected Project” to open the prefilled edit form.</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="tbl" id="tbl">
+        <thead>
+          <tr>
+            <th rowspan="2" class="c-center" style="width:42px" title="Single selection">Sel.</th>
+            <th rowspan="2" class="c-center">Sr.<br/>No.</th>
+            <th rowspan="2">Project ID<span class="req">*</span></th>
+            <th rowspan="2">Project Name<span class="req">*</span></th>
+            <th rowspan="2">District<span class="req">*</span></th>
+            <th rowspan="2">Tehsil<span class="req">*</span></th>
+            <th rowspan="2" class="c-center">Villages</th>
+            <th rowspan="2">Land Area (Ha.)</th>
+            <th colspan="7" class="c-center">Stage Progress%</th>
+            <th rowspan="2">Overall Progress(%)</th>
+            <th rowspan="2">Status<span class="req">*</span></th>
+            <th rowspan="2">Remarks</th>
+            <th rowspan="2">Last Update On<span class="req">*</span></th>
+            <th rowspan="2" class="c-center">Action</th>
+          </tr>
+          <tr>
+            <th class="c-center">JMC</th>
+            <th class="c-center">3(A)</th>
+            <th class="c-center">3(C)<span class="th-sub">Declaration</span></th>
+            <th class="c-center">3(D)<span class="th-sub">Objections</span></th>
+            <th class="c-center">3(G)<span class="th-sub">Award</span></th>
+            <th class="c-center">3(H)</th>
+            <th class="c-center">Award</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- ================= CREATE / EDIT PROJECT MODAL ================= -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Create New Project</h3>
+      <p id="modalSub">Add a new project with basic details</p>
+    </div>
+    <form class="modal-body" id="projectForm" novalidate>
+      <div class="field"><label>Project ID<span class="req">*</span></label><input id="mId" value="Auto Generated" disabled /></div>
+      <div class="field"><label>Project Name<span class="req">*</span></label><input id="mName" placeholder="Enter project name" /></div>
+      <div class="field"><label>Administrative Agency<span class="req">*</span></label>
+        <select id="mAgency"><option value="">Select agency</option><option>MSRDC</option><option>PWD</option><option>MMRDA</option><option>PMRDA</option><option>NHAI</option></select></div>
+      <div class="field"><label>Executive Engineer/ Project Director<span class="req">*</span></label><input id="mEngineer" placeholder="Select executive engineer" /></div>
+      <div class="field"><label>Principal Secretary<span class="req">*</span></label><input id="mSecretary" placeholder="Select principal secretary" /></div>
+      <div class="field"><label>Project Length (In km)<span class="req">*</span></label><input id="mLength" type="number" min="0" placeholder="Enter length" /></div>
+      <div class="field"><label>Land Area (Ha.)<span class="req">*</span></label><input id="mLand" type="number" min="0" step="0.01" placeholder="Enter land area" /></div>
+      <div class="field"><label>Project From (Km)</label><input id="mFrom" type="number" min="0" placeholder="Enter from km" /></div>
+      <div class="field"><label>Project To (Km)</label><input id="mTo" type="number" min="0" placeholder="Enter to km" /></div>
+      <div class="field"><label>Division<span class="req">*</span></label>
+        <select id="mDivision"><option value="">Select division</option><option>Nagpur</option><option>Nashik</option><option>Pune</option><option>Konkan</option><option>Aurangabad</option><option>Amravati</option></select></div>
+      <div class="field"><label>District<span class="req">*</span></label><select id="mDistrict"><option value="">Select district</option></select></div>
+      <div class="field"><label>Taluka / Tehsil<span class="req">*</span></label><select id="mTaluka" disabled><option>Auto Generated</option></select></div>
+      <div class="field"><label>Priority<span class="req">*</span></label>
+        <select id="mPriority"><option value="">Select Priority</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div class="field"><label>Expected Start Date<span class="req">*</span></label>
+        <div class="date-wrap"><input id="mStart" placeholder="dd/mm/yy" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div></div>
+      <div class="field"><label>Expected End Date<span class="req">*</span></label>
+        <div class="date-wrap"><input id="mEnd" placeholder="dd/mm/yy" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div></div>
+      <div class="field"><label>Project Type</label>
+        <select id="mType"><option value="">Select project type</option><option>Road</option><option>Expressway</option><option>Bridge</option><option>Bypass</option><option>Ring Road</option></select></div>
+      <div class="field"><label>Funding Source</label>
+        <select id="mFunding"><option value="">Select funding source</option><option>State Govt</option><option>Central Govt</option><option>PPP</option><option>NHAI</option><option>NABARD</option></select></div>
+      <div class="field"><label>Remarks</label><textarea id="mRemarks" placeholder="Enter remark (optional)"></textarea></div>
+    </form>
+    <div class="modal-foot">
+      <button class="btn btn-outline" id="modalCancel">Cancel</button>
+      <button class="btn btn-primary" id="modalSave">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        <span id="modalSaveText">Save Project</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= STAGE PROGRESS MODAL ================= -->
+<div class="overlay" id="progressOverlay" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+  <div class="modal modal-md">
+    <div class="modal-head">
+      <h3 id="pTitle">Add / Edit Stage Progress</h3>
+      <p id="pSub"></p>
+    </div>
+    <div class="p-grid" id="pGrid">
+      <div class="field"><label style="color:#7c3aed">JMC (%)<span class="req">*</span></label><input type="number" min="0" max="100" id="pStg0" style="color:#7c3aed"></div>
+      <div class="field"><label style="color:#2563eb">3(A) (%)<span class="req">*</span></label><input type="number" min="0" max="100" id="pStg1" style="color:#2563eb"></div>
+      <div class="field"><label style="color:#16a34a">3(C) Declaration (%)<span class="req">*</span></label><input type="number" min="0" max="100" id="pStg2" style="color:#16a34a"></div>
+      <div class="field"><label style="color:#2563eb">3(D) Objections (%)<span class="req">*</span></label><input type="number" min="0" max="100" id="pStg3" style="color:#2563eb"></div>
+      <div class="field"><label style="color:#f59e0b">3(G) Award (%)<span class="req">*</span></label><input type="number" min="0" max="100" id="pStg4" style="color:#f59e0b"></div>
+      <div class="field"><label style="color:#0d9488">3(H) (%)<span class="req">*</span></label><input type="number" min="0" max="100" id="pStg5" style="color:#0d9488"></div>
+      <div class="field"><label style="color:#ef4444">Award (%)<span class="req">*</span></label><input type="number" min="0" max="100" id="pStg6" style="color:#ef4444"></div>
+    </div>
+    <div class="p-overall">
+      <span class="lab">Overall Progress:</span><b id="pOverallText">0%</b>
+      <div class="bar bar-lg"><i id="pOverallBar" class="b-blue" style="width:0%"></i></div>
+    </div>
+    <div class="p-row">
+      <div class="field"><label>Status<span class="req">*</span></label>
+        <select id="pStatus"><option>In progress</option><option>Completed</option><option>Pending</option></select></div>
+      <div class="field"><label>Last Update On<span class="req">*</span></label>
+        <div class="date-wrap"><input id="pDate" placeholder="dd/mm/yyyy" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div></div>
+    </div>
+    <div class="field p-remarks"><label>Remarks</label><textarea id="pRemarks" placeholder="Enter remark (optional)"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" id="pCancel">Cancel</button>
+      <button class="btn btn-primary" id="pSave">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save Progress
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MANAGE VILLAGES MODAL ================= -->
+<div class="overlay" id="villageOverlay" role="dialog" aria-modal="true" aria-labelledby="vTitle">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h3 id="vTitle">Manage Villages</h3>
+      <p id="vSub"></p>
+    </div>
+    <div class="village-tools">
+      <input id="vInput" placeholder="Enter village name" aria-label="New village name" />
+      <button class="btn btn-primary" id="vAdd">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Village
+      </button>
+    </div>
+    <ul class="village-list" id="vList"></ul>
+    <div class="modal-foot">
+      <span class="last-save" id="vCount"></span>
+      <button class="btn btn-outline" id="vDone">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+"use strict";
+/* =========================================================
+   Mahala Portal — Project Management
+   • Table is 100% VIEW-ONLY (all tabs) — actions via buttons
+   • Single-project selection only
+   • Editing only through forms: Edit Project form (prefilled)
+     and Stage Progress form (add / edit)
+========================================================= */
+const ICON = {
+  save : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  edit : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>',
+  prog : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+};
+const STAGES = [
+  { key:"jmc",   label:"JMC",   color:"#7c3aed" },
+  { key:"3a",    label:"3(A)",  color:"#2563eb" },
+  { key:"3c",    label:"3(C)",  color:"#16a34a" },
+  { key:"3d",    label:"3(D)",  color:"#2563eb" },
+  { key:"3g",    label:"3(G)",  color:"#f59e0b" },
+  { key:"3h",    label:"3(H)",  color:"#0d9488" },
+  { key:"award", label:"Award", color:"#ef4444" }
+];
+const STATUSES  = ["In progress", "Completed", "Pending"];
+const ST_CLASS  = { "In progress":"progress", "Completed":"completed", "Pending":"pending" };
+const BAR_CLASS = { "In progress":"b-blue", "Completed":"b-green", "Pending":"b-orange" };
+
+const V_BASE = ["Wadgaon","Pimpri","Borgaon","Mendha","Dabha","Parsodi","Kaula","Lohgaon","Sonori","Khadki","Nari","Chandpur","Kamptee","Koradi","Hingna","Katol","Kalmeshwar","Savner","Parasia","Bhandara","Tiroda","Sakoli","Deori","Amgaon","Salekasa","Mohadi","Lakhani","Kurkheda","Dongargaon","Zari"];
+const V_SUF  = ["Kh.","Bu.","Pr.","KD"];
+const genVillages = n => Array.from({length:n}, (_,i) =>
+  i < V_BASE.length ? V_BASE[i] : `${V_BASE[i % V_BASE.length]} ${V_SUF[Math.floor(i / V_BASE.length) - 1]}`);
+
+/* ---------- Seed data ---------- */
+let projects = [
+  {id:"MH-PRJ-001",name:"Mumbai- Nagpur Expressway(Pkg3)",district:"Nagpur",tehsil:"Hinga",villages:45,land:125.43,stages:[100,100,100,60,40,20,20],overall:56,status:"In progress",remarks:"Work in Progress on major bridges and structures",updated:"12/05/2025",division:"Nagpur"},
+  {id:"MH-PRJ-002",name:"Pune- Nasik Highway Project",district:"Nasik",tehsil:"Sinnar",villages:32,land:67.40,stages:[100,100,100,70,30,20,20],overall:40,status:"In progress",remarks:"",updated:"11/05/2025",division:"Nashik"},
+  {id:"MH-PRJ-003",name:"Samrudhu Mahamarg(Pkg7)",district:"Wardha",tehsil:"Deoli",villages:28,land:64.20,stages:[100,100,100,50,20,20,20],overall:25,status:"Pending",remarks:"3G proccess expected next month",updated:"10/05/2025",division:"Nagpur"},
+  {id:"MH-PRJ-004",name:"Aurangabar Industrial Corridor",district:"Aurangabad",tehsil:"Paithan",villages:26,land:98.50,stages:[100,100,100,90,70,20,20],overall:70,status:"In progress",remarks:"",updated:"09/05/2025",division:"Aurangabad"},
+  {id:"MH-PRJ-005",name:"Solapur - Tujilapur Road Project",district:"Solapur",tehsil:"Mohol",villages:22,land:55.60,stages:[100,100,100,100,100,100,100],overall:100,status:"Completed",remarks:"All good",updated:"08/05/2025",division:"Pune"},
+  {id:"MH-PRJ-006",name:"Nagpur Bypass Road Project",district:"Nagpur",tehsil:"Saoner",villages:18,land:22.45,stages:[100,100,100,80,60,40,40],overall:45,status:"In progress",remarks:"",updated:"07/05/2025",division:"Nagpur"},
+  {id:"MH-PRJ-007",name:"Thane - Bhiwandi Road Project",district:"Thane",tehsil:"Bhiwandi",villages:16,land:40.10,stages:[100,100,100,40,20,5,5],overall:15,status:"Pending",remarks:"Awaiting clearance",updated:"06/05/2025",division:"Konkan"},
+  {id:"MH-PRJ-008",name:"Kohlapur Ring Road",district:"Kholapur",tehsil:"Hatkanangle",villages:14,land:64.20,stages:[100,100,100,70,40,10,10],overall:30,status:"In progress",remarks:"",updated:"05/05/2025",division:"Pune"},
+  {id:"MH-PRJ-009",name:"Nasik - Dhule Road Project",district:"Nasik",tehsil:"Malegaon",villages:12,land:98.50,stages:[100,100,100,80,60,40,40],overall:80,status:"In progress",remarks:"Awaiting letter pending",updated:"04/05/2025",division:"Nashik"},
+  {id:"MH-PRJ-010",name:"Ratnagiri Coastal Highway(Pkg-2)",district:"Ratnagiri",tehsil:"Hinga",villages:10,land:55.60,stages:[100,100,100,100,100,100,100],overall:100,status:"Completed",remarks:"",updated:"03/05/2025",division:"Konkan"},
+  {id:"MH-PRJ-011",name:"Pune Ring Road Phase-2",district:"Pune",tehsil:"Haveli",villages:30,land:37.20,stages:[100,100,100,60,30,10,10],overall:50,status:"In progress",remarks:"",updated:"02/05/2025",division:"Pune"},
+  {id:"MH-PRJ-012",name:"Mumbai Coastal Road Extension",district:"Mumbai",tehsil:"Andheri",villages:18,land:45.00,stages:[100,100,100,80,60,40,40],overall:70,status:"In progress",remarks:"Land acquisition ongoing",updated:"01/05/2025",division:"Konkan"},
+  {id:"MH-PRJ-013",name:"Nashik Airport Link Road",district:"Nasik",tehsil:"Niphad",villages:16,land:30.10,stages:[100,100,100,100,100,100,100],overall:100,status:"Completed",remarks:"",updated:"30/04/2025",division:"Nashik"},
+  {id:"MH-PRJ-014",name:"Amravati Bypass Road",district:"Amravati",tehsil:"Badnera",villages:15,land:28.75,stages:[100,100,100,50,20,10,10],overall:45,status:"Pending",remarks:"Awaiting forest clearance",updated:"29/04/2025",division:"Amravati"},
+  {id:"MH-PRJ-015",name:"Aurangabad Jalna Highway",district:"Aurangabad",tehsil:"Gangapur",villages:14,land:52.30,stages:[100,100,100,70,40,20,20],overall:58,status:"In progress",remarks:"",updated:"28/04/2025",division:"Aurangabad"},
+  {id:"MH-PRJ-016",name:"Kolhapur Ratnagiri Ghat Road",district:"Kholapur",tehsil:"Radhanagari",villages:14,land:41.60,stages:[100,100,100,60,30,15,15],overall:51,status:"In progress",remarks:"Ghat section challenging",updated:"27/04/2025",division:"Pune"},
+  {id:"MH-PRJ-017",name:"Solapur Pandharpur Road",district:"Solapur",tehsil:"Mangalvedhe",villages:13,land:26.90,stages:[100,100,100,100,60,30,30],overall:73,status:"In progress",remarks:"",updated:"26/04/2025",division:"Pune"},
+  {id:"MH-PRJ-018",name:"Thane Parsik Tunnel Road",district:"Thane",tehsil:"Mulund",villages:13,land:63.40,stages:[100,100,100,40,20,5,5],overall:41,status:"Pending",remarks:"DPR approval pending",updated:"25/04/2025",division:"Konkan"},
+  {id:"MH-PRJ-019",name:"Nagpur Amravati Expressway",district:"Nagpur",tehsil:"Katol",villages:12,land:88.00,stages:[100,100,100,80,60,60,60],overall:75,status:"In progress",remarks:"",updated:"24/04/2025",division:"Nagpur"},
+  {id:"MH-PRJ-020",name:"Raigad Coastal Bridge Work",district:"Raigad",tehsil:"Pen",villages:12,land:19.80,stages:[100,100,100,100,100,100,100],overall:100,status:"Completed",remarks:"Bridge commissioned",updated:"23/04/2025",division:"Konkan"},
+  {id:"MH-PRJ-021",name:"Satara Medha Ghat Road",district:"Satara",tehsil:"Medha",villages:11,land:34.50,stages:[100,100,100,60,40,20,20],overall:55,status:"In progress",remarks:"",updated:"22/04/2025",division:"Pune"},
+  {id:"MH-PRJ-022",name:"Sangli Kavathe Mahankal Road",district:"Sangli",tehsil:"Kavathe Mahankal",villages:11,land:21.70,stages:[100,100,100,50,20,0,0],overall:43,status:"Pending",remarks:"",updated:"21/04/2025",division:"Pune"},
+  {id:"MH-PRJ-023",name:"Parbhani Gangakhed Road",district:"Parbhani",tehsil:"Gangakhed",villages:10,land:18.25,stages:[100,100,100,70,50,25,25],overall:61,status:"In progress",remarks:"",updated:"20/04/2025",division:"Aurangabad"},
+  {id:"MH-PRJ-024",name:"Latur Ausa Highway",district:"Latur",tehsil:"Ausa",villages:10,land:27.60,stages:[100,100,100,100,100,100,100],overall:100,status:"Completed",remarks:"",updated:"19/04/2025",division:"Aurangabad"},
+  {id:"MH-PRJ-025",name:"Osmanabad Tuljapur Road",district:"Osmanabad",tehsil:"Tuljapur",villages:9,land:16.40,stages:[100,100,100,60,30,10,10],overall:50,status:"In progress",remarks:"",updated:"18/04/2025",division:"Aurangabad"},
+  {id:"MH-PRJ-026",name:"Beed Majalgaon Dam Road",district:"Beed",tehsil:"Majalgaon",villages:9,land:23.90,stages:[100,100,100,40,10,0,0],overall:38,status:"Pending",remarks:"Funding release awaited",updated:"17/04/2025",division:"Aurangabad"},
+  {id:"MH-PRJ-027",name:"Jalgaon Bhusawal Link Road",district:"Jalgaon",tehsil:"Bhusawal",villages:8,land:14.75,stages:[100,100,100,80,60,40,40],overall:70,status:"In progress",remarks:"",updated:"16/04/2025",division:"Nashik"},
+  {id:"MH-PRJ-028",name:"Dhule Shahade Ring Road",district:"Dhule",tehsil:"Shahade",villages:8,land:20.00,stages:[100,100,100,100,100,100,100],overall:100,status:"Completed",remarks:"",updated:"15/05/2025",division:"Nashik"}
+];
+const AGENCIES=["MSRDC","PWD","NHAI","MMRDA","PMRDA"], ENGINEERS=["Sh. A. R. Patil","Sh. V. K. Deshmukh","Smt. P. S. Kulkarni","Sh. R. N. Jadhav"],
+      SECRETARIES=["Sh. S. K. Joshi","Smt. A. M. Sharma","Sh. N. V. Gawade"], LENGTHS=[42.50,61.20,28.75,55.00,33.40],
+      TYPES=["Road","Expressway","Bridge","Bypass","Ring Road"], FUNDING=["State Govt","Central Govt","NHAI","PPP","NABARD"], PRIORITIES=["High","Medium","Low"];
+projects.forEach((p,i) => {
+  p.villageList = genVillages(p.villages);
+  p.agency=AGENCIES[i%AGENCIES.length]; p.engineer=ENGINEERS[i%ENGINEERS.length]; p.secretary=SECRETARIES[i%SECRETARIES.length];
+  p.lengthKm=LENGTHS[i%LENGTHS.length]; p.fromKm=[0,4.5,12.0][i%3]; p.toKm=+(p.fromKm+p.lengthKm).toFixed(2);
+  p.priority=PRIORITIES[i%PRIORITIES.length]; p.type=TYPES[i%TYPES.length]; p.funding=FUNDING[i%FUNDING.length];
+  p.startDate=`0${(i%9)+1}/04/2023`; p.endDate=`31/03/202${6-(i%2)}`;
+});
+
+const state = { tab:"all", selectedId:null, autoSave:true, sort:"newest",
+  filters:{division:"All",district:"All",tehsil:"All",status:"All",q:""} };
+let modalMode="create", editingId=null, villageCtx=null, progressCtx=null;
+
+/* ---------- Helpers ---------- */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const parseDate = d => { const [dd,mm,yy] = d.split("/").map(Number); return new Date(yy, mm-1, dd); };
+const byId = id => projects.find(p => p.id === id);
+const uniq = arr => [...new Set(arr)];
+const vTotal = () => projects.reduce((s,p) => s + p.villageList.length, 0);
+const clamp = v => Math.max(0, Math.min(100, Math.round(+v || 0)));
+const todayStr = () => { const t=new Date(); return `${String(t.getDate()).padStart(2,"0")}/${String(t.getMonth()+1).padStart(2,"0")}/${t.getFullYear()}`; };
+
+function toast(msg, type="success"){
+  const t=document.createElement("div"); t.className=`toast ${type}`; t.textContent=msg;
+  $("#toasts").appendChild(t);
+  setTimeout(()=>{ t.style.opacity="0"; t.style.transition="opacity .3s"; setTimeout(()=>t.remove(),320); },2600);
+}
+const nowTime = () => new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+const stampLastSave = () => { $("#lastSave").textContent = `Last Save ${nowTime()}`; };
+const syncStats = () => { $("#statProjects").textContent = projects.length; $("#statVillages").textContent = vTotal(); };
+
+/* ---------- Filter + sort ---------- */
+function getFiltered(){
+  const f=state.filters, q=f.q.trim().toLowerCase();
+  const list = projects.filter(p =>
+    (f.division==="All"||p.division===f.division) && (f.district==="All"||p.district===f.district) &&
+    (f.tehsil==="All"||p.tehsil===f.tehsil) && (f.status==="All"||p.status===f.status) &&
+    (!q || [p.id,p.name,p.district,p.tehsil,...p.villageList].some(v=>String(v).toLowerCase().includes(q))));
+  const cmp={ newest:(a,b)=>parseDate(b.updated)-parseDate(a.updated), oldest:(a,b)=>parseDate(a.updated)-parseDate(b.updated),
+    name:(a,b)=>a.name.localeCompare(b.name), progress:(a,b)=>b.overall-a.overall }[state.sort];
+  return list.sort(cmp);
+}
+
+/* ---------- VIEW-ONLY row builder ---------- */
+function rowHTML(p, idx){
+  const sel = state.selectedId === p.id;
+  const stageCells = p.stages.map((v,i)=>`<td class="c-center"><span class="stage-val" style="color:${STAGES[i].color}">${v}</span></td>`).join("");
+  const A = {
+    edit:`<button class="act act-edit" data-act="edit" title="Edit project — opens prefilled form">${ICON.edit}</button>`,
+    prog:`<button class="act act-prog" data-act="progress" title="Add / edit stage progress — form">${ICON.prog}</button>`,
+    vill:`<button class="act act-vill" data-act="villages" title="Manage villages (add / delete)">${ICON.users}</button>`,
+    del :`<button class="act act-del"  data-act="del" title="Delete project">${ICON.trash}</button>`
+  };
+  const actions = state.tab==="all" ? A.edit+A.prog+A.vill+A.del : state.tab==="edit" ? A.edit : A.prog;
+
+  return `<tr data-id="${p.id}" class="${sel?"row-selected":""}">
+    <td class="c-center"><input type="checkbox" class="row-check" ${sel?"checked":""} title="Select this project (single selection)" aria-label="Select ${esc(p.id)}"></td>
+    <td class="c-center">${idx+1}</td>
+    <td class="cell-id">${esc(p.id)}</td>
+    <td class="cell-name">${esc(p.name)}</td>
+    <td>${esc(p.district)}</td>
+    <td>${esc(p.tehsil)}</td>
+    <td class="c-center"><span class="v-plain">${p.villageList.length}</span></td>
+    <td>${p.land.toFixed(2)}</td>
+    ${stageCells}
+    <td class="c-overall"><span class="pct">${p.overall}%</span><div class="bar"><i class="${BAR_CLASS[p.status]}" style="width:${Math.min(p.overall,100)}%"></i></div></td>
+    <td><span class="badge st-${ST_CLASS[p.status]}">${esc(p.status)}</span></td>
+    <td>${p.remarks ? `<span class="rem-text" title="${esc(p.remarks)}">${esc(p.remarks)}</span>` : `<span class="rem-dash">-</span>`}</td>
+    <td><span class="date-text">${esc(p.updated)}</span></td>
+    <td class="c-action">${actions}</td>
+  </tr>`;
+}
+const DISTRICTS = uniq(projects.map(p=>p.district));
+const TEHSILS   = uniq(projects.map(p=>p.tehsil));
+
+function renderBody(){
+  const list = getFiltered();
+  $("#tbody").innerHTML = list.map((p,i)=>rowHTML(p,i)).join("") ||
+    `<tr><td colspan="20" class="c-center" style="padding:28px;color:#8a94a0">No projects match the current filters.</td></tr>`;
+  $("#projCount").textContent = projects.length;
+  updateEditBanner(); syncStats();
+}
+function updateEditBanner(){
+  const p = state.selectedId && byId(state.selectedId);
+  $("#editBannerText").textContent = p
+    ? `Editing Project: ${p.id} - ${p.name} — click “Edit Selected Project” to open the prefilled form.`
+    : "Select a single project, then click “Edit Selected Project” to open the prefilled edit form.";
+}
+
+/* ---------- Tabs ---------- */
+$$(".tab").forEach(tab => tab.addEventListener("click", () => {
+  $$(".tab").forEach(t=>t.classList.remove("active"));
+  tab.classList.add("active");
+  state.tab = tab.dataset.tab;
+  $("#panel").dataset.tab = state.tab;
+  renderBody();
+}));
+
+/* ---------- Table events: SINGLE selection + action buttons ---------- */
+$("#tbody").addEventListener("change", e => {
+  if (!e.target.classList.contains("row-check")) return;
+  const id = e.target.closest("tr[data-id]").dataset.id;
+  state.selectedId = e.target.checked ? id : null;   /* single selection only */
+  renderBody();
+});
+$("#tbody").addEventListener("click", e => {
+  const btn = e.target.closest(".act"); if (!btn) return;
+  const id = e.target.closest("tr[data-id]").dataset.id;
+  const act = btn.dataset.act;
+  if (act === "edit"){ state.selectedId = id; renderBody(); openModal("edit", id); }
+  if (act === "progress"){ state.selectedId = id; renderBody(); openProgress(id); }
+  if (act === "villages"){ openVillages(id); }
+  if (act === "del"){
+    projects = projects.filter(p=>p.id!==id);
+    if (state.selectedId === id) state.selectedId = null;
+    renderBody(); toast(`Project ${id} deleted`, "info");
+  }
+});
+
+/* ---------- Controls ---------- */
+$("#sortBy").addEventListener("change", e => { state.sort=e.target.value; renderBody(); });
+$("#autoSave").addEventListener("change", e => {
+  state.autoSave=e.target.checked;
+  const s=$("#autoState"); s.textContent=state.autoSave?"On":"Off"; s.classList.toggle("off",!state.autoSave);
+});
+$("#refreshBtn").addEventListener("click", e => {
+  const b=e.currentTarget; b.classList.add("spinning"); setTimeout(()=>b.classList.remove("spinning"),650);
+  renderBody(); toast("Data refreshed","info");
+});
+$("#infoBtn").addEventListener("click", () => toast("The table is view-only. Use the action buttons or the forms to make changes.","info"));
+$("#cancelBtn").addEventListener("click", () => { state.selectedId=null; renderBody(); toast("Selection cleared","info"); });
+$("#openEditFormBtn").addEventListener("click", () => {
+  if (state.selectedId && byId(state.selectedId)) openModal("edit", state.selectedId);
+  else toast("Select one project first, then open the edit form.","info");
+});
+$("#openProgressFormBtn").addEventListener("click", () => {
+  if (state.selectedId && byId(state.selectedId)) openProgress(state.selectedId);
+  else toast("Select one project first, then open the progress form.","info");
+});
+
+/* ---------- Filters ---------- */
+const fillSelect=(sel,vals)=>vals.forEach(v=>sel.add(new Option(v,v)));
+fillSelect($("#fDistrict"),DISTRICTS); fillSelect($("#fTehsil"),TEHSILS); fillSelect($("#mDistrict"),DISTRICTS);
+["fDivision","fDistrict","fTehsil","fStatus"].forEach(id =>
+  $("#"+id).addEventListener("change", e => { state.filters[id.slice(1).toLowerCase()]=e.target.value; renderBody(); }));
+$("#fSearch").addEventListener("input", e => { state.filters.q=e.target.value; renderBody(); });
+$("#clearFilters").addEventListener("click", () => {
+  state.filters={division:"All",district:"All",tehsil:"All",status:"All",q:""};
+  ["fDivision","fDistrict","fTehsil","fStatus"].forEach(id=>$("#"+id).value="All");
+  $("#fSearch").value=""; renderBody(); toast("Filters cleared","info");
+});
+
+/* ---------- Import / Export ---------- */
+$("#exportBtn").addEventListener("click", () => {
+  const head=["Sr No","Project ID","Project Name","District","Tehsil","Villages","Land Area (Ha.)",...STAGES.map(s=>s.label),"Overall Progress(%)","Status","Remarks","Last Update On"];
+  const rows=getFiltered().map((p,i)=>[i+1,p.id,p.name,p.district,p.tehsil,p.villageList.length,p.land,...p.stages,p.overall,p.status,p.remarks,p.updated]);
+  const csv=[head,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob([csv],{type:"text/csv"})),download:"projects.csv"});
+  a.click(); URL.revokeObjectURL(a.href); toast("Excel export downloaded (CSV)");
+});
+$("#importBtn").addEventListener("click", ()=>$("#importFile").click());
+$("#importFile").addEventListener("change", e => {
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const lines=String(reader.result).trim().split(/\r?\n/).slice(1);
+    lines.forEach(line=>{
+      const c=line.split(",").map(s=>s.replace(/^"|"$/g,"")); if(c.length<8) return;
+      const n=+c[5]||0;
+      projects.push({ id:c[1]||`MH-PRJ-${String(projects.length+1).padStart(3,"0")}`, name:c[2]||"Imported Project",
+        district:c[3]||DISTRICTS[0], tehsil:c[4]||TEHSILS[0], villages:n, villageList:genVillages(n), land:+c[6]||0,
+        stages:STAGES.map((_,i)=>+c[7+i]||0), overall:+c[14]||0, status:STATUSES.includes(c[15])?c[15]:"Pending",
+        remarks:c[16]||"", updated:c[17]||"01/01/2025", division:"Pune", agency:"PWD", engineer:ENGINEERS[0], secretary:SECRETARIES[0],
+        lengthKm:10, fromKm:0, toKm:10, priority:"Medium", type:"Road", funding:"State Govt", startDate:"01/04/2024", endDate:"31/03/2027" });
+    });
+    renderBody(); toast(`${lines.length} row(s) imported`);
+  };
+  reader.readAsText(file); e.target.value="";
+});
+
+/* ---------- Create / Edit Project form (prefilled in edit mode) ---------- */
+const overlay=$("#overlay");
+function openModal(mode,id){
+  modalMode=mode; editingId=id||null;
+  $$("#projectForm .invalid").forEach(el=>el.classList.remove("invalid"));
+  if(mode==="edit"){
+    const p=byId(id); if(!p) return;
+    $("#modalTitle").textContent="Edit Project";
+    $("#modalSub").textContent=`Update details for ${p.id}`;
+    $("#modalSaveText").textContent="Update Project";
+    $("#mId").value=p.id; $("#mName").value=p.name; $("#mAgency").value=p.agency;
+    $("#mEngineer").value=p.engineer; $("#mSecretary").value=p.secretary; $("#mLength").value=p.lengthKm;
+    $("#mLand").value=p.land; $("#mFrom").value=p.fromKm; $("#mTo").value=p.toKm;
+    $("#mDivision").value=p.division; $("#mDistrict").value=p.district;
+    const tk=$("#mTaluka"); tk.disabled=false;
+    tk.innerHTML=TEHSILS.map(t=>`<option ${t===p.tehsil?"selected":""}>${esc(t)}</option>`).join("");
+    $("#mPriority").value=p.priority; $("#mStart").value=p.startDate; $("#mEnd").value=p.endDate;
+    $("#mType").value=p.type; $("#mFunding").value=p.funding; $("#mRemarks").value=p.remarks;
+  }else{
+    $("#projectForm").reset();
+    $("#modalTitle").textContent="Create New Project";
+    $("#modalSub").textContent="Add a new project with basic details";
+    $("#modalSaveText").textContent="Save Project";
+    $("#mId").value="Auto Generated";
+    const tk=$("#mTaluka"); tk.disabled=true; tk.innerHTML="<option>Auto Generated</option>";
+  }
+  overlay.classList.add("open"); setTimeout(()=>$("#mName").focus(),60);
+}
+const closeModal=()=>overlay.classList.remove("open");
+$("#newProjectBtn").addEventListener("click",()=>openModal("create"));
+$("#modalCancel").addEventListener("click",closeModal);
+overlay.addEventListener("mousedown",e=>{ if(e.target===overlay) closeModal(); });
+
+$("#modalSave").addEventListener("click", () => {
+  const req=["mName","mAgency","mEngineer","mSecretary","mLength","mLand","mDivision","mDistrict","mPriority","mStart","mEnd"];
+  let ok=true;
+  req.forEach(id=>{ const el=$("#"+id), bad=!el.value.trim(); el.classList.toggle("invalid",bad); if(bad) ok=false; });
+  if(!ok){ toast("Please fill all required fields","info"); return; }
+  const data={ name:$("#mName").value.trim(), agency:$("#mAgency").value, engineer:$("#mEngineer").value.trim(),
+    secretary:$("#mSecretary").value.trim(), lengthKm:+$("#mLength").value||0, land:+$("#mLand").value||0,
+    fromKm:+$("#mFrom").value||0, toKm:+$("#mTo").value||0, division:$("#mDivision").value, district:$("#mDistrict").value,
+    tehsil: modalMode==="edit" ? $("#mTaluka").value : TEHSILS[0],
+    priority:$("#mPriority").value, startDate:$("#mStart").value.trim(), endDate:$("#mEnd").value.trim(),
+    type:$("#mType").value, funding:$("#mFunding").value, remarks:$("#mRemarks").value.trim() };
+
+  if(modalMode==="edit"){
+    const p=byId(editingId); Object.assign(p,data);
+    if(!DISTRICTS.includes(p.district)){ DISTRICTS.push(p.district); fillSelect($("#fDistrict"),[p.district]); fillSelect($("#mDistrict"),[p.district]); }
+    if(!TEHSILS.includes(p.tehsil)){ TEHSILS.push(p.tehsil); fillSelect($("#fTehsil"),[p.tehsil]); }
+    closeModal(); renderBody(); stampLastSave(); toast(`Project ${p.id} updated successfully`); return;
+  }
+  const nextNum=projects.length+1, t=new Date();
+  projects.unshift({ id:`MH-PRJ-${String(nextNum).padStart(3,"0")}`, ...data, villageList:[],
+    stages:Array(STAGES.length).fill(0), overall:0, status:"Pending",
+    updated:`${String(t.getDate()).padStart(2,"0")}/${String(t.getMonth()+1).padStart(2,"0")}/${t.getFullYear()}` });
+  if(!DISTRICTS.includes(data.district)){ DISTRICTS.push(data.district); fillSelect($("#fDistrict"),[data.district]); fillSelect($("#mDistrict"),[data.district]); }
+  closeModal(); renderBody(); stampLastSave(); toast(`Project MH-PRJ-${String(nextNum).padStart(3,"0")} created`);
+});
+
+/* ---------- Stage Progress form (add / edit) ---------- */
+const pOverlay=$("#progressOverlay");
+function openProgress(id){
+  const p=byId(id); if(!p) return;
+  progressCtx=id;
+  $("#pTitle").textContent="Add / Edit Stage Progress";
+  $("#pSub").textContent=`${p.id} • ${p.name} (${p.district} / ${p.tehsil})`;
+  STAGES.forEach((s,i)=>{ $("#pStg"+i).value=p.stages[i]; });
+  $("#pStatus").value=p.status; $("#pDate").value=p.updated; $("#pRemarks").value=p.remarks;
+  previewProgress();
+  pOverlay.classList.add("open"); setTimeout(()=>$("#pStg0").focus(),60);
+}
+function previewProgress(){
+  const vals=STAGES.map((_,i)=>clamp($("#pStg"+i).value));
+  const overall=Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  $("#pOverallText").textContent=`${overall}%`;
+  const bar=$("#pOverallBar");
+  bar.style.width=Math.min(overall,100)+"%";
+  bar.className=BAR_CLASS[$("#pStatus").value]||"b-blue";
+}
+STAGES.forEach((_,i)=>$("#pStg"+i).addEventListener("input",previewProgress));
+$("#pStatus").addEventListener("change",previewProgress);
+$("#pCancel").addEventListener("click",()=>pOverlay.classList.remove("open"));
+pOverlay.addEventListener("mousedown",e=>{ if(e.target===pOverlay) pOverlay.classList.remove("open"); });
+$("#pSave").addEventListener("click", () => {
+  const p=byId(progressCtx); if(!p) return;
+  p.stages=STAGES.map((_,i)=>clamp($("#pStg"+i).value));
+  p.overall=Math.round(p.stages.reduce((a,b)=>a+b,0)/p.stages.length);
+  p.status=$("#pStatus").value;
+  p.remarks=$("#pRemarks").value.trim();
+  p.updated=$("#pDate").value.trim()||todayStr();
+  pOverlay.classList.remove("open");
+  renderBody(); stampLastSave();
+  toast(`Stage progress saved for ${p.id} (Overall ${p.overall}%)`);
+});
+
+/* ---------- Village manager ---------- */
+const vOverlay=$("#villageOverlay");
+function openVillages(id){
+  const p=byId(id); if(!p) return;
+  villageCtx=id;
+  $("#vTitle").textContent=`Manage Villages — ${p.tehsil} Tehsil`;
+  $("#vSub").textContent=`${p.district} District • ${p.id} • ${p.name}`;
+  $("#vInput").value=""; renderVillages();
+  vOverlay.classList.add("open"); setTimeout(()=>$("#vInput").focus(),60);
+}
+function renderVillages(){
+  const p=byId(villageCtx); if(!p) return;
+  $("#vList").innerHTML = p.villageList.length
+    ? p.villageList.map((v,i)=>`<li><span class="idx">${i+1}.</span><span class="vname" title="${esc(v)}">${esc(v)}</span>
+        <button class="act act-del" data-vdel="${i}" title="Delete village ${esc(v)}">${ICON.trash}</button></li>`).join("")
+    : `<li class="village-empty" style="border:none">No villages yet — add the first village above.</li>`;
+  $("#vCount").textContent=`${p.villageList.length} village(s) in ${p.tehsil}`;
+}
+function syncVillages(){ syncStats(); renderVillages(); }
+$("#vAdd").addEventListener("click", () => {
+  const p=byId(villageCtx); if(!p) return;
+  const name=$("#vInput").value.trim();
+  if(!name){ toast("Enter a village name first","info"); return; }
+  if(p.villageList.some(v=>v.toLowerCase()===name.toLowerCase())){ toast(`"${name}" already exists in ${p.tehsil}`,"info"); return; }
+  p.villageList.push(name); $("#vInput").value=""; $("#vInput").focus();
+  syncVillages(); toast(`Village "${name}" added to ${p.tehsil}`);
+});
+$("#vInput").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#vAdd").click(); } });
+$("#vList").addEventListener("click",e=>{
+  const btn=e.target.closest("[data-vdel]"); if(!btn) return;
+  const p=byId(villageCtx);
+  const [removed]=p.villageList.splice(+btn.dataset.vdel,1);
+  syncVillages(); toast(`Village "${removed}" removed from ${p.tehsil}`,"info");
+});
+$("#vDone").addEventListener("click",()=>vOverlay.classList.remove("open"));
+vOverlay.addEventListener("mousedown",e=>{ if(e.target===vOverlay) vOverlay.classList.remove("open"); });
+
+/* ---------- ESC closes any modal ---------- */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ closeModal(); pOverlay.classList.remove("open"); vOverlay.classList.remove("open"); }
+});
+
+renderBody();
+</script>
+</body>
+</html>
