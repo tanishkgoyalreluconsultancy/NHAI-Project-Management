@@ -112,26 +112,14 @@ svg{display:block;flex:none}
 .sort-group:focus-within{border-color:var(--blue);box-shadow:var(--ring)}
 .sort-group > span{display:flex;align-items:center;padding:0 10px;font-size:13px;color:#5f6b7a;border-right:1px solid var(--line);background:#fbfcfd}
 .sort-group select{border:none;outline:none;padding:0 26px 0 10px;font-size:13px;appearance:none;background-image:var(--caret-grey);background-repeat:no-repeat;background-position:right 8px center;background-color:#fff}
-.auto-group{display:flex;align-items:center;gap:8px}
-.auto-label{font-size:13px;font-weight:600;color:var(--green-tx)}
-.switch{position:relative;display:inline-block;width:46px;height:24px}
-.switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0}
-.slider{position:absolute;inset:0;background:#8a94a0;border-radius:999px;transition:.2s}
-.switch:focus-within .slider{outline:2px solid var(--blue);outline-offset:2px}
-.slider::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
-.switch input:checked + .slider{background:#17a34a}
-.switch input:checked + .slider::before{transform:translateX(22px)}
-.switch-state{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--green-bg);color:var(--green-tx)}
-.switch-state.off{background:#eef1f4;color:#5f6b7a}
 .last-save{font-size:13px;color:#6b7280;white-space:nowrap}
 .panel[data-tab="all"] .only-edit{display:none}
 .panel:not([data-tab="all"]) .only-all{display:none}
 .panel:not([data-tab="all"]) .toolbar-meta{display:none}
 .toolbar-meta{display:flex;align-items:center;gap:12px;flex-wrap:nowrap}
-.only-tab-edit,.only-tab-progress{display:none}
+.only-tab-edit{display:none}
 .toolbar-action{min-width:200px;height:40px;justify-content:center;white-space:nowrap}
 .panel[data-tab="edit"] .only-tab-edit{display:inline-flex}
-.panel[data-tab="progress"] .only-tab-progress{display:inline-flex}
 
 /* ============ TABLE (VIEW-ONLY) ============ */
 .table-wrap{overflow-x:auto}
@@ -328,16 +316,8 @@ body.modal-open{overflow:hidden}
 .field .monitor-opts input[type="checkbox"]{width:16px;height:16px;margin:0;padding:0;border:none;accent-color:var(--blue);cursor:pointer}
 .field .monitor-opts input[type="checkbox"]:disabled{cursor:not-allowed}
 
-/* ============ ADDED: FILTER PROJECT CARD (Add Project Progress tab) ============ */
-.cas-card{display:none;margin:16px;padding:16px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--shadow)}
-.panel[data-tab="progress"] .cas-card{display:block}
-.cas-card h3{font-size:15px;font-weight:700;color:#1c2430;margin-bottom:12px}
-.cas-grid{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
-.cas-grid .filter-group{min-width:200px;flex:1 1 200px;max-width:280px}
 .filter-group select:disabled{background-color:#f3f4f6;color:var(--muted);cursor:not-allowed}
-.cas-actions{display:flex;justify-content:flex-end;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
-.cas-actions .btn:disabled{opacity:.45;cursor:not-allowed}
-.cas-actions .btn-primary:disabled:hover{background:var(--blue)}
+#importBtn[hidden]{display:none}
 
 /* ============ ADDED: SIDEBAR GROUP ITEMS (links without underline) ============ */
 a.nav-item{text-decoration:none}
@@ -430,11 +410,7 @@ a.nav-item{text-decoration:none}
     </a>
     <a class="nav-item" href="#" id="navEdit">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
-      Edit Project
-    </a>
-    <a class="nav-item" href="#" id="navProgress">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Add Project Progress
+      Edit Project &amp; Progress
     </a>
 
     <div class="side-label">Project</div>
@@ -460,7 +436,7 @@ a.nav-item{text-decoration:none}
       <p>Create/ Edit project details, manage location, update progress and fund information in one place.</p>
     </div>
     <div class="page-actions">
-      <button class="btn btn-outline" id="importBtn">
+      <button class="btn btn-outline" id="importBtn" hidden>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Import Excel
       </button>
@@ -536,24 +512,16 @@ a.nav-item{text-decoration:none}
         </button>
         <button class="tab" data-tab="edit" role="tab">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
-          Edit Project
-        </button>
-        <button class="tab" data-tab="progress" role="tab">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Add Project Progress
+          Edit Project &amp; Progress
         </button>
       </div>
 
       <div class="panel-controls">
-        <button class="btn btn-primary toolbar-action only-all" id="createProjectBtn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Create Project
-        </button>
         <button class="btn btn-primary toolbar-action only-tab-edit" id="openEditFormBtn">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
           Edit Selected Project
         </button>
-        <button class="btn btn-primary toolbar-action only-tab-progress" id="openProgressFormBtn">
+        <button class="btn btn-primary toolbar-action only-tab-edit" id="openProgressFormBtn">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           Add / Edit Progress
         </button>
@@ -565,11 +533,6 @@ a.nav-item{text-decoration:none}
             <option value="progress">Progress</option>
           </select>
         </label>
-        <div class="auto-group">
-          <span class="auto-label">Auto Save</span>
-          <label class="switch"><input type="checkbox" id="autoSave" checked /><span class="slider"></span></label>
-          <span class="switch-state" id="autoState">On</span>
-        </div>
         <button class="icon-btn plain only-edit" id="infoBtn" aria-label="About selecting a project" title="Only one project can be selected at a time. Actions are performed through forms.">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         </button>
@@ -583,21 +546,6 @@ a.nav-item{text-decoration:none}
       </div>
     </div>
 
-
-    <!-- Filter Project cascade: only on the Add Project Progress tab; it never changes the table rows -->
-    <section class="cas-card" id="casCard" aria-labelledby="casTitle">
-      <h3 id="casTitle">Filter Project</h3>
-      <div class="cas-grid">
-        <label class="filter-group"><span>District</span><select id="fCasDistrict"><option value="">Select district</option></select></label>
-        <label class="filter-group"><span>Tehsil</span><select id="fCasTehsil" disabled><option value="">Select tehsil</option></select></label>
-        <label class="filter-group"><span>Village</span><select id="fCasVillage" disabled><option value="">Select village</option></select></label>
-        <label class="filter-group"><span>Project</span><select id="fCasProject" disabled><option value="">Select project</option></select></label>
-      </div>
-      <div class="cas-actions">
-        <button class="btn btn-outline" id="fCasReset" type="button">Reset</button>
-        <button class="btn btn-primary" id="fCasOpen" type="button" disabled>Open Progress Form</button>
-      </div>
-    </section>
 
     <div class="table-wrap">
       <table class="tbl" id="tbl">
@@ -895,9 +843,8 @@ function registerTehsil(district, tehsil){
 }
 projects.forEach(p => registerTehsil(p.district, p.tehsil));
 
-const state = { tab:"all", selectedId:null, autoSave:true, sort:"newest",
+const state = { tab:"all", selectedId:null, sort:"newest",
   filters:{division:"All",district:"All",tehsil:"All",status:"All",agency:"All",priority:"All",stage:"All",monitoring:"All",q:""} };
-const cas = { district:"", tehsil:"", village:"", project:"" };   /* Filter Project cascade (Add Project Progress tab) */
 let modalMode="create", editingId=null, villageCtx=null, progressCtx=null;
 
 /* ---------- Helpers ---------- */
@@ -963,7 +910,7 @@ function rowHTML(p, idx){
     vill:`<button class="act act-vill" data-act="villages" aria-label="Manage villages for ${esc(p.id)}" title="Manage villages (add / delete)">${ICON.users}</button>`,
     del :`<button class="act act-del"  data-act="del" aria-label="Delete ${esc(p.id)}" title="Delete project">${ICON.trash}</button>`
   };
-  const actions = state.tab==="all" ? A.edit+A.prog+A.vill+A.del : state.tab==="edit" ? A.edit : A.prog;
+  const actions = state.tab==="all" ? A.edit+A.prog+A.vill+A.del : A.edit+A.prog;
 
   return `<tr data-id="${p.id}" class="${sel?"row-selected":""}">
     <td class="c-center pin-l"><input type="checkbox" class="row-check" ${sel?"checked":""} title="Select this project (single selection)" aria-label="Select ${esc(p.id)}"></td>
@@ -1032,7 +979,6 @@ function renderBody(){
   /* counts show how many projects match the current filters (total when no filter is set) */
   $("#projCount").textContent = list.length;
   $("#sideProjCount").textContent = list.length;
-  renderCascade();
   syncStats();
   syncTabFade();
 }
@@ -1043,7 +989,6 @@ function switchTab(name){
   $$(".tab").forEach(t => { const on = t.dataset.tab === name; t.classList.toggle("active", on); t.setAttribute("aria-selected", String(on)); });
   $("#panel").dataset.tab = name;
   setNavActive($("#navEdit"), name === "edit");
-  setNavActive($("#navProgress"), name === "progress");
   renderBody();
 }
 $$(".tab").forEach(tab => tab.addEventListener("click", () => switchTab(tab.dataset.tab)));
@@ -1091,10 +1036,6 @@ if ("ResizeObserver" in window) new ResizeObserver(syncTableOverflow).observe(ta
 
 /* ---------- Controls ---------- */
 $("#sortBy").addEventListener("change", e => { state.sort=e.target.value; currentPage=1; renderBody(); });
-$("#autoSave").addEventListener("change", e => {
-  state.autoSave=e.target.checked;
-  const s=$("#autoState"); s.textContent=state.autoSave?"On":"Off"; s.classList.toggle("off",!state.autoSave);
-});
 $("#refreshBtn").addEventListener("click", e => {
   const b=e.currentTarget; b.classList.add("spinning"); setTimeout(()=>b.classList.remove("spinning"),650);
   renderBody(); toast("Data refreshed","info");
@@ -1310,7 +1251,6 @@ function openModal(mode,id){
 }
 const closeModal=()=>overlay.classList.remove("open");
 $("#newProjectBtn").addEventListener("click",()=>openModal("create"));
-$("#createProjectBtn").addEventListener("click",()=>openModal("create"));
 $("#modalCancel").addEventListener("click",closeModal);
 overlay.addEventListener("mousedown",e=>{ if(e.target===overlay) closeModal(); });
 
@@ -1658,45 +1598,6 @@ $("#vList").addEventListener("click",e=>{
 $("#vDone").addEventListener("click",()=>vOverlay.classList.remove("open"));
 vOverlay.addEventListener("mousedown",e=>{ if(e.target===vOverlay) vOverlay.classList.remove("open"); });
 
-/* ---------- Filter Project cascade (Add Project Progress tab) — never changes the table rows ---------- */
-const casSel = { district:$("#fCasDistrict"), tehsil:$("#fCasTehsil"), village:$("#fCasVillage"), project:$("#fCasProject") };
-const byName = (a,b) => String(a).localeCompare(String(b));
-function setOptions(sel, opts, value, placeholder, disabled){
-  sel.innerHTML = `<option value="">${placeholder}</option>` + opts.map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join("");
-  sel.disabled = disabled;
-  sel.value = value;
-}
-function renderCascade(){
-  /* a level that no longer matches the data (e.g. after a delete) is cleared */
-  const dists = uniq(projects.map(p => p.district)).sort(byName);
-  if(!dists.includes(cas.district)) cas.district = "";
-  const inDist = cas.district ? projects.filter(p => p.district === cas.district) : [];
-  const tehs = uniq(inDist.map(p => p.tehsil)).sort(byName);
-  if(!tehs.includes(cas.tehsil)) cas.tehsil = "";
-  const inTeh = cas.tehsil ? inDist.filter(p => p.tehsil === cas.tehsil) : [];
-  const vills = uniq(inTeh.flatMap(p => p.villageList)).sort(byName);
-  if(!vills.includes(cas.village)) cas.village = "";
-  const projs = (cas.village ? inTeh.filter(p => p.villageList.includes(cas.village)) : inTeh)
-    .slice().sort((a,b) => byName(a.name, b.name));
-  if(!projs.some(p => p.id === cas.project)) cas.project = "";
-
-  setOptions(casSel.district, dists.map(d => ({value:d, label:d})), cas.district, "Select district", false);
-  setOptions(casSel.tehsil, tehs.map(t => ({value:t, label:t})), cas.tehsil, "Select tehsil", !cas.district);
-  setOptions(casSel.village, vills.map(v => ({value:v, label:v})), cas.village, "Select village", !cas.tehsil);
-  setOptions(casSel.project, projs.map(p => ({value:p.id, label:`${p.name} (${p.id})`})), cas.project, "Select project", !cas.tehsil);
-  $("#fCasOpen").disabled = !cas.project;
-}
-/* changing a level resets the levels below it */
-casSel.district.addEventListener("change", e => { cas.district = e.target.value; cas.tehsil = cas.village = cas.project = ""; renderCascade(); });
-casSel.tehsil.addEventListener("change", e => { cas.tehsil = e.target.value; cas.village = cas.project = ""; renderCascade(); });
-casSel.village.addEventListener("change", e => { cas.village = e.target.value; cas.project = ""; renderCascade(); });
-casSel.project.addEventListener("change", e => { cas.project = e.target.value; renderCascade(); });
-$("#fCasReset").addEventListener("click", () => { cas.district = cas.tehsil = cas.village = cas.project = ""; renderCascade(); });
-$("#fCasOpen").addEventListener("click", () => {
-  const p = byId(cas.project); if(!p) return;
-  state.selectedId = p.id; renderBody(); openProgress(p.id);
-});
-
 /* ---------- Dialogs: Escape closes the top-most dialog, Tab stays inside it, focus returns to the trigger ---------- */
 const topOverlay = () => $$(".overlay.open").pop();
 document.addEventListener("keydown", e => {
@@ -1756,7 +1657,6 @@ const closeSidebarIfSmall = () => { if(matchMedia("(max-width:820px)").matches) 
 const onNav = (id, action) => $("#"+id).addEventListener("click", e => { e.preventDefault(); closeSidebarIfSmall(); action(); });
 onNav("navCreate", () => openModal("create"));
 onNav("navEdit", () => { switchTab("edit"); openEditForSelected(); });
-onNav("navProgress", () => switchTab("progress"));
 onNav("navManage", () => {});   /* current page: no action */
 
 
